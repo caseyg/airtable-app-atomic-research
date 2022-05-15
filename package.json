@@ -12,6 +12,8 @@
     },
     "dependencies": {
         "@airtable/blocks": "^1.5.1",
+        "primeicons": "^5.0.0",
+        "primereact": "^8.1.0",
         "react": "^16.9.0",
         "react-dom": "^16.9.0"
     },
