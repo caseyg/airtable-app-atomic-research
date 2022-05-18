@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useState, useCallback} from 'react';
 import {
     useBase,
     useRecords,
@@ -14,6 +14,9 @@ import { MultiSelect } from 'primereact/multiselect';
 import Settings from './components/Settings'
 import "primereact/resources/themes/bootstrap4-light-blue/theme.css";
 import "primereact/resources/primereact.min.css";
+import { Remirror, useHelpers, useKeymap, useRemirror } from '@remirror/react';
+import { MarkdownExtension } from 'remirror/extensions'
+import delay from 'delay';
 
 export default function TodoApp() {
     const base = useBase();
@@ -24,11 +27,13 @@ export default function TodoApp() {
     const viewId = globalConfig.get('selectedViewId');
     const doneFieldId = globalConfig.get('selectedDoneFieldId');
     const citiesFieldId = globalConfig.get('citiesFieldId');
-    
+    const notesFieldId = globalConfig.get('notesFieldId');
+
     const table = base.getTableByIdIfExists(tableId);
     const view = table ? table.getViewByIdIfExists(viewId) : null;
     const doneField = table ? table.getFieldByIdIfExists(doneFieldId) : null;
     const citiesField = table ? table.getFieldByIdIfExists(citiesFieldId) : null;
+    const notesField = table ? table.getFieldByIdIfExists(notesFieldId) : null;
     
     // Don't need to fetch records if doneField doesn't exist (the field or it's parent table may
     // have been deleted, or may not have been selected yet.)
@@ -38,7 +43,7 @@ export default function TodoApp() {
 
     const tasks = records
         ? records.map(record => {
-              return <Task key={record.id} record={record} table={table} doneField={doneField} citiesField={citiesField} />;
+              return <Task key={record.id} record={record} table={table} doneField={doneField} citiesField={citiesField} notesField={notesField} />;
           })
         : null;
 
@@ -47,10 +52,6 @@ export default function TodoApp() {
     useSettingsButton(() => {
         setIsShowingSettings(!isShowingSettings)
     })
-
-    // const onSaveSettings = useCallback(
-    //       setIsShowingSettings(false)
-    // )
     
     if (isShowingSettings) {
         return (
@@ -66,12 +67,24 @@ export default function TodoApp() {
 }
 
 
-function Task({record, table, doneField, citiesField}) {
-    function onChange(event) {
+function Task({record, table, doneField, citiesField, notesField}) {
+
+    function onCitiesChange(event) {
         table.updateRecordAsync(record, {
             [citiesField.id]: event.value,
         });
     }
+
+    function onChange(event) {
+        console.log(getMarkdown())
+    }
+
+    const { manager, state } = useRemirror({
+        extensions: () => [new MarkdownExtension()],
+        content: record.name,
+        stringHandler: 'markdown',
+    });     
+
     return (
         <Box
             fontSize={4}
@@ -82,15 +95,17 @@ function Task({record, table, doneField, citiesField}) {
             display="flex"
             alignItems="center"
         >
+
             <TaskDoneCheckbox table={table} record={record} doneField={doneField} />
-            <a
-                style={{cursor: 'pointer', flex: 'auto', padding: 8}}
-                onClick={() => {
-                    expandRecord(record);
-                }}
-            >
-                {record.name || 'Unnamed record'}
-            </a>
+  
+            <div className='remirror-theme' style={{flex: 'auto', padding: 8}}>
+                <Remirror 
+                manager={manager} 
+                initialContent={state}
+                onChange={onChange}
+                />
+            </div>
+
             <MultiSelect 
                 filter 
                 filterPlaceholder="Cities..."
@@ -99,7 +114,7 @@ function Task({record, table, doneField, citiesField}) {
                 showSelectAll="false"
                 removeIcon="pi pi-times"
                 value={record.getCellValue(citiesField)} 
-                onChange={onChange} 
+                onChange={onCitiesChange} 
                 options={citiesField.options.choices} 
                 placeholder="Select a City" />
             <TaskDeleteButton table={table} record={record} />
@@ -166,6 +181,7 @@ function AddTaskForm({table}) {
     const isFormEnabled = table.hasPermissionToCreateRecord({
         [table.primaryField.id]: undefined,
     });
+
     return (
         <>
             <form onSubmit={onSubmit}>
@@ -182,6 +198,7 @@ function AddTaskForm({table}) {
                     </Button>
                 </Box>
             </form>
+
             <link rel="stylesheet" href="https://unpkg.com/primeicons/primeicons.css" />
         </>
     );

@@ -35,6 +35,14 @@ export default function Settings({table, globalConfig}) {
                     allowedTypes={[FieldType.MULTIPLE_SELECTS]}
                 />
             </FormField>
+            <FormField label="Notes Field">
+                <FieldPickerSynced
+                    table={table}
+                    globalConfigKey="notesFieldId"
+                    placeholder="Pick a 'notes' field..."
+                    allowedTypes={[FieldType.RICH_TEXT]}
+                />
+            </FormField>
         </Box>
     )
 }

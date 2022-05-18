@@ -12,10 +12,17 @@
     },
     "dependencies": {
         "@airtable/blocks": "^1.5.1",
+        "@emotion/react": "^11.9.0",
+        "@emotion/styled": "^11.8.1",
+        "@remirror/pm": "^1.0.18",
+        "@remirror/react": "^1.0.36",
+        "@remirror/react-editors": "^0.1.77",
+        "delay": "^5.0.0",
         "primeicons": "^5.0.0",
         "primereact": "^8.1.0",
         "react": "^16.9.0",
-        "react-dom": "^16.9.0"
+        "react-dom": "^16.9.0",
+        "remirror": "^1.0.80"
     },
     "devDependencies": {
         "@airtable/blocks-testing": "^0.0.4",
